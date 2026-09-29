@@ -11,15 +11,27 @@
         android:id="@+id/txtheader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="144dp"
         android:layout_marginTop="28dp"
         android:text="Food Saver"
         android:textColor="#DC0F0F"
         android:textColorLink="#EF0909"
         android:textSize="24sp"
         android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtnewingred"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ingredients List"
+        android:textColor="#DC0F0F"
+        android:textColorLink="#EF0909"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@+id/btnaddingr"
+        tools:layout_editor_absoluteX="26dp" />
 
     <Button
         android:id="@+id/btnaddingr"
@@ -30,5 +42,13 @@
         android:text="Add ingredients"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtheader" />
+
+    <ListView
+        android:layout_width="380dp"
+        android:layout_height="502dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/txtnewingred" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
