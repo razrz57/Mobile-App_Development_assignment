@@ -147,4 +147,48 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
 
         return ingredients;
     }
+
+    // update the pantry record by its db ID
+    public int updateIngredient(
+            long id,
+            String name,
+            double quantity,
+            String unit
+    ) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Invalid ingredient ID");
+        }
+
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Ingredient name is required");
+        }
+
+        if (Double.isNaN(quantity)
+                || Double.isInfinite(quantity)
+                || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+
+        if (!("g".equals(unit)
+                || "kg".equals(unit)
+                || "ml".equals(unit)
+                || "L".equals(unit)
+                || "unit".equals(unit))) {
+            throw new IllegalArgumentException("Invalid unit");
+        }
+
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NAME, name.trim());
+        values.put(COLUMN_QUANTITY, quantity);
+        values.put(COLUMN_UNIT, unit);
+
+        return db.update(
+                TABLE_PANTRY,
+                values,
+                COLUMN_ID + " = ?",
+                new String[]{String.valueOf(id)}
+        );
+    }
 }

@@ -48,6 +48,34 @@ public class AddIngredientsActivity extends AppCompatActivity {
 
         unitSpinner.setAdapter(unitAdapter);
 
+        //  if no ID is present then add, if ID is greater than 0 then edit
+        long ingredientId = getIntent().getLongExtra("ingredient_id", -1L);
+        boolean isEditing = ingredientId > 0;
+
+        if (isEditing) {
+            nameInput.setText(
+                    getIntent().getStringExtra("ingredient_name")
+            );
+
+            double existingQuantity = getIntent().getDoubleExtra(
+                    "ingredient_quantity",
+                    0
+            );
+            quantityInput.setText(Double.toString(existingQuantity));
+
+            String existingUnit = getIntent().getStringExtra(
+                    "ingredient_unit"
+            );
+
+            int unitPosition = unitAdapter.getPosition(existingUnit);
+
+            if (unitPosition >= 0) {
+                unitSpinner.setSelection(unitPosition);
+            }
+
+            saveButton.setText("Update ingredient");
+        }
+
         // validation on save
         saveButton.setOnClickListener(view -> {
 
@@ -99,24 +127,55 @@ public class AddIngredientsActivity extends AppCompatActivity {
                 try (PantryDatabaseHelper databaseHelper =
                              new PantryDatabaseHelper(getApplicationContext())) {
 
-                    long ingredientId = databaseHelper.addIngredient(
-                            ingredientName,
-                            quantity,
-                            unit
-                    );
+                    if (isEditing) {
+                        int rowsUpdated = databaseHelper.updateIngredient(
+                                ingredientId,
+                                ingredientName,
+                                quantity,
+                                unit
+                        );
 
-                    Log.d("PantrySave", "Saved ingredient ID: " + ingredientId);
+                        if (rowsUpdated != 1) {
+                            runOnUiThread(() -> {
+                                if (isFinishing() || isDestroyed()) {
+                                    return;
+                                }
 
-                    // to ensure that the UI changes happen on the main thread not background
+                                saveButton.setEnabled(true);
+
+                                nameInput.setError(
+                                        "This ingredient could not be found, try again"
+                                );
+                            });
+
+                            return;
+                        }
+
+                        Log.d(
+                                "PantrySave",
+                                "Updated ingredient ID: " + ingredientId
+                        );
+
+                    } else {
+                        long newIngredientId = databaseHelper.addIngredient(
+                                ingredientName,
+                                quantity,
+                                unit
+                        );
+
+                        Log.d(
+                                "PantrySave",
+                                "Saved ingredient ID: " + newIngredientId
+                        );
+                    }
+
                     runOnUiThread(() -> {
                         if (isFinishing() || isDestroyed()) {
                             return;
                         }
 
-                        // return to the pantry screen.
                         finish();
                     });
-
                 }
             });
         });

@@ -31,10 +31,31 @@ public class MainActivity extends AppCompatActivity {
         pantryAdapter = new PantryAdapter(this);
         pantryList.setAdapter(pantryAdapter);
 
-        // Find the button from the main screen layout.
+        // opens the selected ingredient for editing
+        pantryList.setOnItemClickListener((parent, view, position, rowId) -> {
+            PantryItem ingredient = pantryAdapter.getItem(position);
+
+            if (ingredient == null) {
+                return;
+            }
+
+            Intent intent = new Intent(
+                    MainActivity.this,
+                    AddIngredientsActivity.class
+            );
+            // ensures that the data in the activity screen is pulled from the db and not blank
+            intent.putExtra("ingredient_id", ingredient.getId());
+            intent.putExtra("ingredient_name", ingredient.getName());
+            intent.putExtra("ingredient_quantity", ingredient.getQuantity());
+            intent.putExtra("ingredient_unit", ingredient.getUnit());
+
+            startActivity(intent);
+        });
+
+        // find the button from the main screen layout
         Button addIngredientButton = findViewById(R.id.buttonAddIngredient);
 
-        // Opens the ingredient screen when the user taps the button.
+        // opens the add ingredient screen when the user taps the button
         addIngredientButton.setOnClickListener(view -> {
             Intent intent = new Intent(
                     MainActivity.this,
