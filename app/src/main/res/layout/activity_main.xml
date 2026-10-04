@@ -30,11 +30,11 @@
         android:textColorLink="#EF0909"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toBottomOf="@+id/btnaddingr"
+        app:layout_constraintTop_toBottomOf="@+id/buttonAddIngredient"
         tools:layout_editor_absoluteX="16dp" />
 
     <Button
-        android:id="@+id/btnaddingr"
+        android:id="@+id/buttonAddIngredient"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="244dp"
