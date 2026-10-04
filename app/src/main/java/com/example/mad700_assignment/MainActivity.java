@@ -26,6 +26,16 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        Button recipeButton = findViewById(R.id.buttonRecipe);
+
+        recipeButton.setOnClickListener(view -> {
+            Intent intent = new Intent(
+                    MainActivity.this,
+                    Recipe.class
+            );
+            startActivity(intent);
+        });
+
         ListView pantryList = findViewById(R.id.listPantry);
 
         pantryAdapter = new PantryAdapter(this);
