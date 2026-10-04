@@ -13,6 +13,8 @@ import android.widget.Spinner;
 import android.util.Log;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import android.view.View;
+import androidx.appcompat.app.AlertDialog;
 
 public class AddIngredientsActivity extends AppCompatActivity {
 
@@ -31,6 +33,7 @@ public class AddIngredientsActivity extends AppCompatActivity {
         EditText quantityInput = findViewById(R.id.inputQuantity);
         Spinner unitSpinner = findViewById(R.id.spinnerUnit);
         Button saveButton = findViewById(R.id.buttonSave);
+        Button deleteButton = findViewById(R.id.buttonDelete);
 
         // populate the unit dropdown
         String[] units = {"g", "kg", "ml", "L", "unit"};
@@ -51,6 +54,8 @@ public class AddIngredientsActivity extends AppCompatActivity {
         //  if no ID is present then add, if ID is greater than 0 then edit
         long ingredientId = getIntent().getLongExtra("ingredient_id", -1L);
         boolean isEditing = ingredientId > 0;
+        //shows the button when editing only, otherwise it is in gone mode
+        deleteButton.setVisibility(isEditing ? View.VISIBLE : View.GONE);
 
         if (isEditing) {
             nameInput.setText(
@@ -122,6 +127,7 @@ public class AddIngredientsActivity extends AppCompatActivity {
             // stops the user from contionuously adding by tapping the save button while saving
 
             saveButton.setEnabled(false);
+            deleteButton.setEnabled(false);
 
             databaseExecutor.execute(() -> {
                 try (PantryDatabaseHelper databaseHelper =
@@ -142,6 +148,7 @@ public class AddIngredientsActivity extends AppCompatActivity {
                                 }
 
                                 saveButton.setEnabled(true);
+                                deleteButton.setEnabled(true);
 
                                 nameInput.setError(
                                         "This ingredient could not be found, try again"
@@ -178,6 +185,46 @@ public class AddIngredientsActivity extends AppCompatActivity {
                     });
                 }
             });
+        });
+
+        // action performed when the delete button is clicked
+        deleteButton.setOnClickListener(view -> {
+
+            String originalName = getIntent().getStringExtra(
+                    "ingredient_name"
+            );
+
+            new AlertDialog.Builder(AddIngredientsActivity.this)
+                    .setTitle("Delete ingredient?")
+                    .setMessage(
+                            "Remove " + originalName + " from your pantry?"
+                    )
+                    .setNegativeButton("Cancel", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        saveButton.setEnabled(false);
+                        deleteButton.setEnabled(false);
+
+                        databaseExecutor.execute(() -> {
+                            try (PantryDatabaseHelper databaseHelper =
+                                         new PantryDatabaseHelper(
+                                                 getApplicationContext()
+                                         )) {
+
+                                databaseHelper.deleteIngredient(ingredientId);
+
+                                runOnUiThread(() -> {
+                                    if (isFinishing() || isDestroyed()) {
+                                        return;
+                                    }
+
+                                    finish();
+                                });
+                            }
+                        });
+                    })
+                    .show();
         });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {

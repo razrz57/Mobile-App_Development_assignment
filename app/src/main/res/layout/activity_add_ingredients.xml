@@ -101,16 +101,17 @@
         app:layout_constraintTop_toBottomOf="@+id/spinnerUnit"
         app:layout_constraintVertical_bias="0.173" />
 
-    <TextView
-        android:id="@+id/textSaveError"
-        android:layout_width="333dp"
-        android:layout_height="36dp"
-        android:layout_marginTop="16dp"
-        android:textAlignment="center"
-        android:textColor="#EF0909"
-        android:textSize="24sp"
+    <Button
+        android:id="@+id/buttonDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonSave" />
+        app:layout_constraintTop_toBottomOf="@+id/buttonSave"
+        app:layout_constraintVertical_bias="0.044" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

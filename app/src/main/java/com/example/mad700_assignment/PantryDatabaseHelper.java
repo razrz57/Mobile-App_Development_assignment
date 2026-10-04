@@ -191,4 +191,18 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(id)}
         );
     }
+    // deletes the ingredient matching the selected ID
+    public int deleteIngredient(long id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Invalid ingredient ID");
+        }
+
+        SQLiteDatabase db = getWritableDatabase();
+
+        return db.delete(
+                TABLE_PANTRY,
+                COLUMN_ID + " = ?",
+                new String[]{String.valueOf(id)}
+        );
+    }
 }
