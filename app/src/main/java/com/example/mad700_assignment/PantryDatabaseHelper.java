@@ -11,7 +11,7 @@ import java.util.List;
 public class PantryDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "food_saver.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
     public static final String TABLE_PANTRY = "pantry_items";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_NAME = "name";
@@ -46,6 +46,7 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL(createPantryTable);
         createRecipeTables(db);
+        addDhalCurry(db);
     }
 
     // runs when DATABASE_VERSION increases
@@ -57,8 +58,12 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
     ) {
 
         if (oldVersion < 2) {
-            // Add recipe tables while preserving existing pantry items.
+            // add recipe tables while preserving existing ingredients
             createRecipeTables(db);
+        }
+
+        if (oldVersion < 3) {
+            addDhalCurry(db);
         }
     }
 
@@ -239,5 +244,53 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
     public void onConfigure(SQLiteDatabase db) {
         super.onConfigure(db);
         db.setForeignKeyConstraintsEnabled(true);
+    }
+    // adds the dhal curry recipe to the db
+    private void addDhalCurry(SQLiteDatabase db) {
+        ContentValues recipe = new ContentValues();
+        recipe.put("name", "Dhal Curry");
+        recipe.put(
+                "method",
+                "Preheat pot at medium heat for 3 minutes"
+                        + "Add chillies and curry leaf"
+                        + "Simmer for 5 minutes"
+                        + "Add the dhal"
+                        + "Stir for 5 minutes until medium consistency"
+                        + "Remove from heat and serve hot/warm"
+                        + "Remember to turn off your stove"
+        );
+
+        long recipeId = db.insertOrThrow(
+                TABLE_RECIPES,
+                null,
+                recipe
+        );
+
+        // adds the first ingredient required
+        ContentValues dhal = new ContentValues();
+        dhal.put("recipe_id", recipeId);
+        dhal.put("ingredient_name", "canned dhal");
+        dhal.put("quantity", 1);
+        dhal.put("unit", "unit");
+
+        db.insertOrThrow(TABLE_RECIPE_INGREDIENTS, null, dhal);
+
+        // adds the second ingredient required
+        ContentValues chillies = new ContentValues();
+        chillies.put("recipe_id", recipeId);
+        chillies.put("ingredient_name", "chilli");
+        chillies.put("quantity", 2);
+        chillies.put("unit", "unit");
+
+        db.insertOrThrow(TABLE_RECIPE_INGREDIENTS, null, chillies);
+
+        // adds the third ingredient required
+        ContentValues curryLeaf = new ContentValues();
+        curryLeaf.put("recipe_id", recipeId);
+        curryLeaf.put("ingredient_name", "curry leaf");
+        curryLeaf.put("quantity", 1);
+        curryLeaf.put("unit", "unit");
+
+        db.insertOrThrow(TABLE_RECIPE_INGREDIENTS, null, curryLeaf);
     }
 }
