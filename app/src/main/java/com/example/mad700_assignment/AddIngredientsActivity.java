@@ -12,8 +12,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.database.sqlite.SQLiteException;
+import android.util.Log;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AddIngredientsActivity extends AppCompatActivity {
+
+    // starts the database operations without stalling the functionality on the app
+    private final ExecutorService databaseExecutor =
+            Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +29,7 @@ public class AddIngredientsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_add_ingredients);
 
-        // Connect the variables to the controls
+        // connects the variables to the controls
         EditText nameInput = findViewById(R.id.inputIngredientName);
         EditText quantityInput = findViewById(R.id.inputQuantity);
         Spinner unitSpinner = findViewById(R.id.spinnerUnit);
@@ -45,11 +53,11 @@ public class AddIngredientsActivity extends AppCompatActivity {
 
         // validation on save
         saveButton.setOnClickListener(view -> {
-            // Remove accidental spaces before and after the input.
+            // removes accidental spaces before and after the inputs
             String ingredientName = nameInput.getText().toString().trim();
             String quantityText = quantityInput.getText().toString().trim();
 
-            // Clear errors from the previous attempt.
+            // clears error from the previous attempt
             nameInput.setError(null);
             quantityInput.setError(null);
 
@@ -85,13 +93,58 @@ public class AddIngredientsActivity extends AppCompatActivity {
 
             String unit = unitSpinner.getSelectedItem().toString();
 
-            // Testing string before db connection
-            Toast.makeText(
-                    AddIngredientsActivity.this,
-                    "Valid input: " + ingredientName + " — "
-                            + quantity + " " + unit + ". Not saved yet.",
-                    Toast.LENGTH_LONG
-            ).show();
+            // stops the user from contionuously adding by tapping the save button while saving
+
+            saveButton.setEnabled(false);
+
+            databaseExecutor.execute(() -> {
+                try (PantryDatabaseHelper databaseHelper =
+                             new PantryDatabaseHelper(getApplicationContext())) {
+
+                    long ingredientId = databaseHelper.addIngredient(
+                            ingredientName,
+                            quantity,
+                            unit
+                    );
+
+                    Log.d("PantrySave", "Saved ingredient ID: " + ingredientId);
+
+                    // to ensure that the UI changes happen on the main thread not background
+                    runOnUiThread(() -> {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+
+                        Toast.makeText(
+                                AddIngredientsActivity.this,
+                                "Ingredient saved",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                        finish();
+                    });
+
+                } catch (SQLiteException
+                         | IllegalArgumentException
+                         | IllegalStateException exception) {
+
+                    Log.e("PantrySave", "Could not save ingredient", exception);
+
+                    runOnUiThread(() -> {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+
+                        saveButton.setEnabled(true);
+
+                        Toast.makeText(
+                                AddIngredientsActivity.this,
+                                "Could not save ingredient, try again",
+                                Toast.LENGTH_LONG
+                        ).show();
+                    });
+                }
+            });
         });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
