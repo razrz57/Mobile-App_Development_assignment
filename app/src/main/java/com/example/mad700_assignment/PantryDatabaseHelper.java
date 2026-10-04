@@ -11,13 +11,14 @@ import java.util.List;
 public class PantryDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "food_saver.db";
-    private static final int DATABASE_VERSION = 1;
-
+    private static final int DATABASE_VERSION = 2;
     public static final String TABLE_PANTRY = "pantry_items";
     public static final String COLUMN_ID = "_id";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_QUANTITY = "quantity";
     public static final String COLUMN_UNIT = "unit";
+    public static final String TABLE_RECIPES = "recipes";
+    public static final String TABLE_RECIPE_INGREDIENTS = "recipe_ingredients";
 
     // configures the database file and its version
     public PantryDatabaseHelper(Context context) {
@@ -44,6 +45,7 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
                         ")";
 
         db.execSQL(createPantryTable);
+        createRecipeTables(db);
     }
 
     // runs when DATABASE_VERSION increases
@@ -54,11 +56,10 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
             int newVersion
     ) {
 
-        // this will stop unsupported upgrades instead of deleting the data
-        throw new IllegalStateException(
-                "Database migration required from version "
-                        + oldVersion + " to " + newVersion
-        );
+        if (oldVersion < 2) {
+            // Add recipe tables while preserving existing pantry items.
+            createRecipeTables(db);
+        }
     }
 
     // insert one ingredient and return its database ID
@@ -204,5 +205,39 @@ public class PantryDatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_ID + " = ?",
                 new String[]{String.valueOf(id)}
         );
+    }
+
+    private void createRecipeTables(SQLiteDatabase db) {
+        db.execSQL(
+                "CREATE TABLE " + TABLE_RECIPES + " (" +
+                        "_id INTEGER PRIMARY KEY, " +
+                        "name TEXT NOT NULL, " +
+                        "method TEXT NOT NULL" +
+                        ")"
+        );
+
+        db.execSQL(
+                "CREATE TABLE " + TABLE_RECIPE_INGREDIENTS + " (" +
+                        "_id INTEGER PRIMARY KEY, " +
+                        "recipe_id INTEGER NOT NULL, " +
+                        "ingredient_name TEXT NOT NULL, " +
+                        "quantity REAL NOT NULL CHECK(quantity > 0), " +
+                        "unit TEXT NOT NULL " +
+                        "CHECK(unit IN ('g', 'kg', 'ml', 'L', 'unit')), " +
+                        "FOREIGN KEY(recipe_id) REFERENCES " +
+                        TABLE_RECIPES + "(_id) ON DELETE CASCADE" +
+                        ")"
+        );
+
+        db.execSQL(
+                "CREATE INDEX index_recipe_ingredients_recipe_id ON " +
+                        TABLE_RECIPE_INGREDIENTS + "(recipe_id)"
+        );
+    }
+
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(true);
     }
 }

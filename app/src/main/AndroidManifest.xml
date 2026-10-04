@@ -22,10 +22,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AddIngredientsScreen"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
             android:name=".AddIngredientsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
