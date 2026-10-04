@@ -1,7 +1,6 @@
 package com.example.mad700_assignment;
 
 import android.os.Bundle;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -11,8 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
-import android.database.sqlite.SQLiteException;
 import android.util.Log;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,6 +50,7 @@ public class AddIngredientsActivity extends AppCompatActivity {
 
         // validation on save
         saveButton.setOnClickListener(view -> {
+
             // removes accidental spaces before and after the inputs
             String ingredientName = nameInput.getText().toString().trim();
             String quantityText = quantityInput.getText().toString().trim();
@@ -115,34 +113,10 @@ public class AddIngredientsActivity extends AppCompatActivity {
                             return;
                         }
 
-                        Toast.makeText(
-                                AddIngredientsActivity.this,
-                                "Ingredient saved",
-                                Toast.LENGTH_SHORT
-                        ).show();
-
+                        // return to the pantry screen.
                         finish();
                     });
 
-                } catch (SQLiteException
-                         | IllegalArgumentException
-                         | IllegalStateException exception) {
-
-                    Log.e("PantrySave", "Could not save ingredient", exception);
-
-                    runOnUiThread(() -> {
-                        if (isFinishing() || isDestroyed()) {
-                            return;
-                        }
-
-                        saveButton.setEnabled(true);
-
-                        Toast.makeText(
-                                AddIngredientsActivity.this,
-                                "Could not save ingredient, try again",
-                                Toast.LENGTH_LONG
-                        ).show();
-                    });
                 }
             });
         });
@@ -152,5 +126,11 @@ public class AddIngredientsActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        databaseExecutor.shutdown();
+        super.onDestroy();
     }
 }
